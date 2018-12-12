@@ -21,15 +21,13 @@ dispatcher = up.dispatcher
 
 # Home function
 def start(bot, update):
-    bot.send_message(chat_id=update.message.chat_id,
-                     text="Comando start")
     print("Comando start")
     # Home message
     msg = "Hello {user_name}! I'm {bot_name}. \n"
     msg += "What would you like to do? \n"
-    msg += "/listing + username - List your repositories \n"
-    msg += "/info + username - shows your information \n"
-    msg += "Ex: /listing HeavenH | /info HeavenH"
+    msg += "/org + organization - List an organization's repositories \n"
+    msg += "/today + organization - List today's commits for an organization\n"
+    msg += "Ex: /org devmobufrj | /today devmobufrj"
 
     # Send the message
     bot.send_message(chat_id=update.message.chat_id,
@@ -38,22 +36,9 @@ def start(bot, update):
                          bot_name=bot.name))
 
 
-# Function to list the repositories
-def listing(bot, update, args):
-    gh = GitHub()
-    for user in args:
-        bot.send_message(chat_id=update.message.chat_id,
-                         text='{0} Listing the user repositories '
-                         .format('\U0001F5C4') +
-                         '[{0}](https://github.com/{0}) >>'.format(
-                             user),
-                         parse_mode=ParseMode.MARKDOWN)
-
-        bot.send_message(chat_id=update.message.chat_id,
-                         text=gh.get_repos(user))
-
 # Function to list the Organization's repositories
 def org(bot, update, args):
+    print("Comando org")
     gh = GitHub()
     for organization in args:
         bot.send_message(chat_id=update.message.chat_id,
@@ -67,26 +52,38 @@ def org(bot, update, args):
                          text=gh.get_org_repos(organization))
 
 
-# Function to display user information
-def info(bot, update, args):
+# Function to list the Organization's repositories
+def today(bot, update, args):
+    print("Comando today")
+
     gh = GitHub()
-    for user in args:
+    if len(args) < 1:
         bot.send_message(chat_id=update.message.chat_id,
-                         text='\[i\] User Information ' +
-                         '[{0}](https://github.com/{0}) >>'.format(
-                             user),
-                         parse_mode=ParseMode.MARKDOWN)
+                            text='Please provide an organization name')
+        return
+
+    if len(args) > 1:
         bot.send_message(chat_id=update.message.chat_id,
-                         text=gh.get_info(user))
+                            text='Please provide only one valid username for the organization')
+        return
+
+    organization = args[0]
+    bot.send_message(chat_id=update.message.chat_id,
+                        text='{0} Listing todays updates for '
+                        .format('\U0001F5C4') +
+                        '[{0}](https://github.com/{0}) >>'.format(
+                            organization),
+                        parse_mode=ParseMode.MARKDOWN)
+
+    bot.send_message(chat_id=update.message.chat_id,
+                        text=gh.get_org_today(organization))
+
+
 
 # Add handlers to dispatcher
 dispatcher.add_handler(CommandHandler('start', start))
-dispatcher.add_handler(CommandHandler('listing', listing, pass_args=True))
+dispatcher.add_handler(CommandHandler('today', today, pass_args=True))
 dispatcher.add_handler(CommandHandler('org', org, pass_args=True))
-dispatcher.add_handler(CommandHandler('info', info, pass_args=True))
 
 # Start the program
 up.start_polling()
-
-# Developed by Heaven, Jr750ac, Pedro Souza, Israel Sant'Anna all rights
-# reserved
