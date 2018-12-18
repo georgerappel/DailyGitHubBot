@@ -53,6 +53,7 @@ class GitHub:
             self.msg = "Repositories updated today: " + str(repo_count) + " with " + str(commit_count) + " commits!" + self.msg
         else:
             self.msg = "No repositories were updated today."
+            
         self.msg += "\nt = " + str(int(time() - tempo)) +  "segundos"
         return self.msg
 
