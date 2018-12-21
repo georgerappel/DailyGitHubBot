@@ -181,7 +181,6 @@ dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('today', today, pass_args=True))
 dispatcher.add_handler(CommandHandler('config', config, pass_args=True))
 dispatcher.add_handler(CommandHandler('org', org, pass_args=True))
-dispatcher.add_handler(CommandHandler('org', org, pass_args=True))
 
 # Start the program
 up.start_polling()

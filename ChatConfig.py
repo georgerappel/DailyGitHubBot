@@ -16,7 +16,7 @@ class ChatConfig:
         msg = ""
 
         if not self.valid():
-            msg += "You must configure all fields for the bot to work on this chat.\n"
+            msg += "\nYou must setup every field for the bot to work on this chat.\n\n"
 
         msg += "Username: "
         if self.username is not None:
@@ -27,7 +27,7 @@ class ChatConfig:
 
         msg += "Notification time: "
         if self.hour is not None:
-            msg += str(self.hour) + " o'clock, daily"
+            msg += "daily at " + str(self.hour) + " o'clock"
         else:
             msg += "not set"
         msg += ".\n"
