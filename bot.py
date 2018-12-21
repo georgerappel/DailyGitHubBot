@@ -7,10 +7,10 @@ from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler
 from datetime import datetime
 import re
-
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from GitApi import GitHub
-from dbhelper import DBHelper, Config
+from dbhelper import DBHelper
 
 # Connect and Setup the database
 db = DBHelper()
@@ -27,22 +27,36 @@ up = Updater(token=config['DEFAULT']['token'])
 dispatcher = up.dispatcher
 
 
-
 # Home function
 def start(bot, update):
     print("Comando start")
     # Home message
-    msg = "Hello {user_name}! I'm {bot_name}. \n"
-    msg += "What would you like to do? \n"
-    msg += "/org + organization - List an organization's repositories \n"
-    msg += "/today + organization - List today's commits for an organization\n"
-    msg += "Ex: /org devmobufrj | /today devmobufrj"
+    msg = "Hello, I'm {bot_name}. \n"
+    msg += "To learn how to use the bot and start using the automatic\
+             daily notifications, start by using the /help command. \n"
 
     # Send the message
     bot.send_message(chat_id=update.message.chat_id,
-                     text=msg.format(
-                         user_name=update.message.from_user.first_name,
-                         bot_name=bot.name))
+                     text=msg.format(bot_name=bot.name))
+
+def help(bot, update):
+    msg = ""
+    msg += "This bot will message the current chat everyday or on weekdays with the "
+    msg += "daily commit count for your organization. To get started, configure your"
+    msg += " organization's username and the time you want to receive the notifications.\n\n"
+    msg += "= Configuration =\n"
+    msg += usage_config()
+    msg += "\n"
+    msg += "= Use on demand =\n"
+    msg += "/org + organization - List an organization's repositories \n"
+    msg += "/today + organization - List today's commits for an organization\n"
+    msg += "Ex: /org devmobufrj | /today devmobufrj\n"
+    msg += "\nThis bot is OpenSource and contributions are welcome at "
+    msg += "https://github.com/georgerappel/DailyGitHubBot\n"
+
+    # Send the message
+    bot.send_message(chat_id=update.message.chat_id,
+                     text=msg)
 
 
 # Function to list the Organization's repositories
@@ -63,9 +77,6 @@ def org(bot, update, args):
 
 # Function to list the Organization's repositories
 def today(bot, update, args):
-    print("Comando today")
-
-    gh = GitHub()
     if len(args) < 1:
         bot.send_message(chat_id=update.message.chat_id,
                             text='Please provide an organization name')
@@ -76,62 +87,30 @@ def today(bot, update, args):
                             text='Please provide only one valid username for the organization')
         return
 
-    organization = args[0]
-    bot.send_message(chat_id=update.message.chat_id,
-                        text='{0} Listing todays updates for '
-                        .format('\U0001F5C4') +
-                        '[{0}](https://github.com/{0}) >>'.format(
-                            organization),
-                        parse_mode=ParseMode.MARKDOWN)
+    send_today_message(bot, update.message.chat_id, args[0])
 
-    bot.send_message(chat_id=update.message.chat_id,
-                        text=gh.get_org_today(organization))
-
-
-def handle_todo(bot, update, args):
-    print("Handle todo")
-    try:
-        text = " ".join(args)
-        items = db.get_items()
-        print("Items: ")
-        print(items)
-
-        if text in items:
-            db.delete_item(text)
-            items = db.get_items()
-        else:
-            db.add_item(text)
-            items = db.get_items()
-
-        msg = "TODO List:\n"
-        msg += "\n".join(items)
-        bot.send_message(chat_id=update.message.chat_id,
-                    text=msg)
-    except KeyError:
-        print("Key error pass")
-        pass
 
 def config(bot, update, args):
     msg = ""
-    if len(args) < 2 or len(args) > 2:
+    if len(args) == 0:
+        msg = "Current configuration:\n\n"
+        msg += db.get_config(update.message.chat_id).to_string()
+    elif len(args) < 2 or len(args) > 2:
         msg = "The config command requires 2 parameters.\n"
         msg += usage_config()
     else:
         if args[0] == "time":
-            match = re.match("([0-1]{0,1}[0-9])([ap]m)", args[1])
+            match = re.match("([0-2]{0,1}[0-9])", args[1])
             if match is not None:
-                hour = int(match.group(1))
-                if hour > 12 or hour < 0:
+                hour = int(match.group(0))
+                if hour > 23 or hour < 0:
                     msg = "Invalid hour.\n"
                     msg += usage_config()
                 else:
-                    ampm = match.group(2)
-                    msg = "Data válida: " + match.group(0)
+                    msg = "Hour saved: " + match.group(0) + " o'clock"
                     msg += "\n" + get_time()
-                    print("Fazer teste")
                     try:
-                        config = db.set_config(update.message.chat_id,
-                            "devmobufrj", int(match.group(1)))
+                        config = db.set_config(update.message.chat_id, hour=int(match.group(1)))
                         msg += "\n" + config.to_string()
                     except Exception as e:
                         print(e)
@@ -144,18 +123,18 @@ def config(bot, update, args):
         else:
             msg = "Invalid configuration key.\nUse one of: time, days\n"
             msg += usage_config()
-    print(update.message)
+
     bot.send_message(chat_id=update.message.chat_id,
                 text=msg)
 
 def usage_config():
     usage = ""
     usage += "Usage:\n"
-    usage += "  /config time {0-12}[am/pm]\n"
+    usage += "  /config time {0-23}\n"
     usage += "  /config days [weekdays/daily]\n"
     usage += "Examples:\n"
-    usage += "  /config time 9am\n"
-    usage += "  /config time 5pm\n"
+    usage += "  /config time 9\n"
+    usage += "  /config time 17\n"
     usage += "  /config days weekdays\n"
     usage += "  /config days daily\n"
     usage += get_time() + "\n"
@@ -171,13 +150,49 @@ def error_handler(bot, update, error):
     print(error)
 
 
+def send_today_message(bot, chat_id, organization):
+    gh = GitHub()
+    bot.send_message(chat_id=chat_id,
+                     text='{0} Listing todays updates for '
+                     .format('\U0001F5C4') +
+                          '[{0}](https://github.com/{0}) >>'.format(
+                              organization),
+                     parse_mode=ParseMode.MARKDOWN)
+
+    bot.send_message(chat_id=chat_id,
+                     text=gh.get_org_today(organization))
+
+
+def notification_handler():
+    chats = db.all_configs()
+    print("Notification handler running. " + get_time())
+    for chat in chats:
+        dispatcher.bot.send_message(chat_id=chat.chat_id,
+                                    text="1 hour interval.\n"
+                                    + get_time()
+                                    + "\nYour config:\n"
+                                    + chat.to_string())
+        if chat.hour == datetime.utcnow().hour:
+            send_today_message(dispatcher.bot, chat.chat_id, chat.username)
+
+
+    print("Handler finished. " + get_time())
+
+
 # Add handlers to dispatcher
 dispatcher.add_error_handler(error_handler)
 dispatcher.add_handler(CommandHandler('start', start))
-dispatcher.add_handler(CommandHandler('todo', handle_todo, pass_args=True))
+dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('today', today, pass_args=True))
 dispatcher.add_handler(CommandHandler('config', config, pass_args=True))
+dispatcher.add_handler(CommandHandler('org', org, pass_args=True))
 dispatcher.add_handler(CommandHandler('org', org, pass_args=True))
 
 # Start the program
 up.start_polling()
+
+# Scheduler to handle the notifications every hour
+scheduler = BackgroundScheduler()
+scheduler.add_job(notification_handler, 'cron', hour='*/1')
+#scheduler.add_job(notification_handler, 'cron', minute='*/5')
+scheduler.start()
