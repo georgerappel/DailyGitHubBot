@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from sys import path
-from configparser import ConfigParser
+import os
 from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler
 from datetime import datetime
@@ -16,14 +15,10 @@ from dbhelper import DBHelper
 db = DBHelper()
 db.setup()
 
-# Bot Configuration
-config = ConfigParser()
-config.read_file(open('config.ini'))
-
 # Connecting the telegram API
 # Updater will take the information and dispatcher connect the message to
 # the bot
-up = Updater(token=config['DEFAULT']['token'])
+up = Updater(token=os.environ.get("BOT_API_KEY"))
 dispatcher = up.dispatcher
 
 
