@@ -13,5 +13,28 @@ class ChatConfig:
             self.hour = hour
 
     def to_string(self):
-        return "Username: @" + self.username + "\n"\
-                + "Notification hour: " + str(self.hour)
+        msg = ""
+
+        if not self.valid():
+            msg += "You must configure all fields for the bot to work on this chat.\n"
+
+        msg += "Username: "
+        if self.username is not None:
+            msg += "@" + self.username
+        else:
+            msg += "not set"
+        msg += ".\n"
+
+        msg += "Notification time: "
+        if self.hour is not None:
+            msg += str(self.hour) + " o'clock, daily"
+        else:
+            msg += "not set"
+        msg += ".\n"
+
+        return msg
+
+    def valid(self):
+        return self.chat_id is not None and\
+               self.username is not None and\
+               self.hour is not None

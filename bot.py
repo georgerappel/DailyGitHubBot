@@ -56,7 +56,6 @@ def help(bot, update):
 
 # Function to list the Organization's repositories
 def org(bot, update, args):
-    print("Comando org")
     gh = GitHub()
     for organization in args:
         bot.send_message(chat_id=update.message.chat_id,
@@ -88,8 +87,12 @@ def today(bot, update, args):
 def config(bot, update, args):
     msg = ""
     if len(args) == 0:
-        msg = "Current configuration:\n\n"
-        msg += db.get_config(update.message.chat_id).to_string()
+        chat_config = db.get_config(update.message.chat_id)
+        if chat_config is None:
+            msg = "Use /help to learn how to setup the bot for this chat"
+        else:
+            msg = "Current configuration:\n\n"
+            msg += chat_config.to_string()
     elif len(args) < 2 or len(args) > 2:
         msg = "The config command requires 2 parameters.\n"
         msg += usage_config()
@@ -104,33 +107,39 @@ def config(bot, update, args):
                 else:
                     msg = "Hour saved: " + match.group(0) + " o'clock"
                     msg += "\n" + get_time()
-                    try:
-                        config = db.set_config(update.message.chat_id, hour=int(match.group(1)))
-                        msg += "\n" + config.to_string()
-                    except Exception as e:
-                        print(e)
+                    config = db.set_config(update.message.chat_id, hour=int(match.group(1)))
+                    msg += "\n" + config.to_string()
             else:
                 msg = "Invalid hour.\n"
                 msg += usage_config()
         elif args[0] == "days":
             print("Ok")
             # TODO
+        elif args[0] == "org":
+            config = db.set_config(update.message.chat_id, username=args[1])
+            msg = "Username saved.\n"
+            msg += config.to_string()
+            # TODO
         else:
-            msg = "Invalid configuration key.\nUse one of: time, days\n"
+            msg = "Invalid configuration key.\n"
             msg += usage_config()
 
     bot.send_message(chat_id=update.message.chat_id,
                 text=msg)
 
+
 def usage_config():
     usage = ""
     usage += "Usage:\n"
+    usage += "  /config org {username} \n"
     usage += "  /config time {0-23}\n"
     usage += "  /config days [weekdays/daily]\n"
     usage += "Examples:\n"
+    usage += "  /config org DevMobUFRJ\n"
     usage += "  /config time 9\n"
     usage += "  /config time 17\n"
     usage += "  /config days weekdays\n"
+    usage += "  /config days daily\n"
     usage += "  /config days daily\n"
     usage += get_time() + "\n"
     return usage
@@ -141,7 +150,7 @@ def get_time():
 
 
 def error_handler(bot, update, error):
-    print("Erro: ")
+    print("Error handled: ")
     print(error)
 
 
@@ -160,18 +169,9 @@ def send_today_message(bot, chat_id, organization):
 
 def notification_handler():
     chats = db.all_configs()
-    print("Notification handler running. " + get_time())
     for chat in chats:
-        dispatcher.bot.send_message(chat_id=chat.chat_id,
-                                    text="1 hour interval.\n"
-                                    + get_time()
-                                    + "\nYour config:\n"
-                                    + chat.to_string())
-        if chat.hour == datetime.utcnow().hour:
+        if chat.valid() and chat.hour == datetime.utcnow().hour:
             send_today_message(dispatcher.bot, chat.chat_id, chat.username)
-
-
-    print("Handler finished. " + get_time())
 
 
 # Add handlers to dispatcher

@@ -22,7 +22,7 @@ class DBHelper:
                 return ChatConfig(chat_id, x[0], x[1])
         except Exception as e:
             print(e)
-        print("foi pro none")
+
         return None
 
     def set_config(self, chat_id, username=None, hour=None):
