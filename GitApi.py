@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from requests import get
-from json import loads
-from argparse import ArgumentParser
 from datetime import datetime, timedelta
-from time import time
+from json import loads
+from requests import get
+
 
 class GitHub:
+
+    def __init__(self):
+        self.msg = ""
 
     def get_org_repos(self, organization):
         self.msg = ""
@@ -17,12 +19,12 @@ class GitHub:
         for i in range(len(req)):
             self.msg += '\n\nName: ' + str(req[i]['name'])
             self.msg += '\nDescription: ' + \
-                str(req[i]['description'])
+                        str(req[i]['description'])
             self.msg += '\nURL repository: ' + str(req[i]['html_url'])
-            self.msg += '\nStars: total: ' + \
-                str(req[i]['stargazers_count'])
-            self.msg += '\nForks total: ' + \
-                str(req[i]['forks_count'])
+            self.msg += '\nStars: ' + \
+                        str(req[i]['stargazers_count'])
+            self.msg += '\nForks: ' + \
+                        str(req[i]['forks_count'])
         return self.msg
 
     def get_org_today(self, organization):
@@ -30,7 +32,6 @@ class GitHub:
         commit_count = 0
         repo_count = 0
         today = datetime.now()
-        tempo = time()
         yesterday = (today - timedelta(1)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         req = loads(get('https://api.github.com/orgs/' +
@@ -39,20 +40,20 @@ class GitHub:
             pushed_at = datetime.strptime(req[i]['pushed_at'], "%Y-%m-%dT%H:%M:%SZ")
             diff = datetime.now() - pushed_at
             if diff.days < 1:
-                req2 = loads(get('https://api.github.com/repos/' +
-                            organization + '/' + req[i]['name'] +
-                            '/commits?since=' + yesterday).text)
+                req2 = loads(get('https://api.github.com/repos/' + organization + '/' + req[i]['name']
+                                 + '/commits?since=' + yesterday).text)
                 if len(req2) > 0:
                     self.msg += '\n\nName: ' + str(req[i]['name'])
                     self.msg += '\nTotal Commits: ' + str(len(req2))
                     commit_count += len(req2)
                     repo_count += 1
-        
+
         if commit_count > 0:
-            self.msg = str(commit_count) + " commits on " + str(repo_count) + " repositories!" + self.msg
+            self.msg = "Repositories updated today: " + str(repo_count) + " with " + str(commit_count) + " commits!" \
+                       + self.msg
         else:
             self.msg = "No repositories were updated today."
-        
+
         return self.msg
 
 

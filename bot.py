@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-import os
+from configparser import ConfigParser
 from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler
 from datetime import datetime
@@ -15,10 +15,14 @@ from dbhelper import DBHelper
 db = DBHelper()
 db.setup()
 
+# Bot Configuration
+config = ConfigParser()
+config.read_file(open('config.ini'))
+
 # Connecting the telegram API
 # Updater will take the information and dispatcher connect the message to
 # the bot
-up = Updater(token=os.environ.get("BOT_API_KEY"))
+up = Updater(token=config['DEFAULT']['token'])
 dispatcher = up.dispatcher
 
 
@@ -33,6 +37,7 @@ def start(bot, update):
     # Send the message
     bot.send_message(chat_id=update.message.chat_id,
                      text=msg.format(bot_name=bot.name))
+
 
 def help(bot, update):
     msg = ""
@@ -54,7 +59,7 @@ def help(bot, update):
                      text=msg)
 
 
-# Function to list the Organization's repositories
+# List the repositories of an Organization
 def org(bot, update, args):
     gh = GitHub()
     for organization in args:
@@ -69,21 +74,21 @@ def org(bot, update, args):
                          text=gh.get_org_repos(organization))
 
 
-# Function to list the Organization's repositories
+# List commits made today by an organization
 def today(bot, update, args):
     if len(args) < 1:
         bot.send_message(chat_id=update.message.chat_id,
-                            text='Please provide an organization name')
+                         text='Please provide an organization name')
         return
-
-    if len(args) > 1:
+    elif len(args) > 1:
         bot.send_message(chat_id=update.message.chat_id,
-                            text='Please provide only one valid username for the organization')
+                         text='Please provide only one valid username for the organization')
         return
 
     send_today_message(bot, update.message.chat_id, args[0])
 
 
+# Set or Read chat configurations
 def config(bot, update, args):
     msg = ""
     if len(args) == 0:
@@ -121,13 +126,12 @@ def config(bot, update, args):
             msg += config.to_string()
             # TODO
         else:
-            msg = "Invalid configuration key.\n"
-            msg += usage_config()
+            msg = "Invalid configuration key.\nTry /help for usage examples.\n"
 
-    bot.send_message(chat_id=update.message.chat_id,
-                text=msg)
+    bot.send_message(chat_id=update.message.chat_id, text=msg)
 
 
+# Usage guide for the /config command
 def usage_config():
     usage = ""
     usage += "Usage:\n"
@@ -158,7 +162,7 @@ def error_handler(bot, update, error):
 def send_today_message(bot, chat_id, organization):
     gh = GitHub()
     bot.send_message(chat_id=chat_id,
-                     text='{0} Listing todays updates for '
+                     text='{0} Listing today\'s updates for '
                      .format('\U0001F5C4') +
                           '[{0}](https://github.com/{0}) >>'.format(
                               organization),
@@ -189,5 +193,7 @@ up.start_polling()
 # Scheduler to handle the notifications every hour
 scheduler = BackgroundScheduler()
 scheduler.add_job(notification_handler, 'cron', hour='*/1')
-#scheduler.add_job(notification_handler, 'cron', minute='*/5')
+# scheduler.add_job(notification_handler, 'cron', minute='*/5')
 scheduler.start()
+
+print("Bot is up and running (probably)")
