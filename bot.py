@@ -131,6 +131,7 @@ def config(bot, update, args):
 def usage_config():
     usage = ""
     usage += "Usage:\n"
+    usage += "  /config - shows current configuration"
     usage += "  /config org {username} \n"
     usage += "  /config time {0-23}\n"
     usage += "  /config days [weekdays/daily]\n"

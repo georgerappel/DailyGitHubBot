@@ -44,17 +44,15 @@ class GitHub:
                             '/commits?since=' + yesterday).text)
                 if len(req2) > 0:
                     self.msg += '\n\nName: ' + str(req[i]['name'])
-                    self.msg += '\nURL repository: ' + str(req[i]['html_url'])
-                    self.msg += '\n# of Commits: ' + str(len(req2))
+                    self.msg += '\nTotal Commits: ' + str(len(req2))
                     commit_count += len(req2)
                     repo_count += 1
         
         if commit_count > 0:
-            self.msg = "Repositories updated today: " + str(repo_count) + " with " + str(commit_count) + " commits!" + self.msg
+            self.msg = str(commit_count) + " commits on " + str(repo_count) + " repositories!" + self.msg
         else:
             self.msg = "No repositories were updated today."
-            
-        self.msg += "\nt = " + str(int(time() - tempo)) +  "segundos"
+        
         return self.msg
 
 
