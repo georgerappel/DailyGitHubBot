@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from sys import path
 from configparser import ConfigParser
 from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler
@@ -39,6 +38,7 @@ def start(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text=msg.format(bot_name=bot.name))
 
+
 def help(bot, update):
     msg = ""
     msg += "This bot will message the current chat everyday or on weekdays with the "
@@ -59,9 +59,8 @@ def help(bot, update):
                      text=msg)
 
 
-# Function to list the Organization's repositories
+# List the repositories of an Organization
 def org(bot, update, args):
-    print("Comando org")
     gh = GitHub()
     for organization in args:
         bot.send_message(chat_id=update.message.chat_id,
@@ -75,21 +74,21 @@ def org(bot, update, args):
                          text=gh.get_org_repos(organization))
 
 
-# Function to list the Organization's repositories
+# List commits made today by an organization
 def today(bot, update, args):
     if len(args) < 1:
         bot.send_message(chat_id=update.message.chat_id,
-                            text='Please provide an organization name')
+                         text='Please provide an organization name')
         return
-
-    if len(args) > 1:
+    elif len(args) > 1:
         bot.send_message(chat_id=update.message.chat_id,
-                            text='Please provide only one valid username for the organization')
+                         text='Please provide only one valid username for the organization')
         return
 
     send_today_message(bot, update.message.chat_id, args[0])
 
 
+# Set or Read chat configurations
 def config(bot, update, args):
     msg = ""
     if len(args) == 0:
@@ -121,12 +120,13 @@ def config(bot, update, args):
             print("Ok")
             # TODO
         else:
-            msg = "Invalid configuration key.\nUse one of: time, days\n"
+            msg = "Invalid configuration key.\nTry /help for usage examples.\n"
             msg += usage_config()
 
-    bot.send_message(chat_id=update.message.chat_id,
-                text=msg)
+    bot.send_message(chat_id=update.message.chat_id, text=msg)
 
+
+# Usage guide for the /config command
 def usage_config():
     usage = ""
     usage += "Usage:\n"
@@ -153,7 +153,7 @@ def error_handler(bot, update, error):
 def send_today_message(bot, chat_id, organization):
     gh = GitHub()
     bot.send_message(chat_id=chat_id,
-                     text='{0} Listing todays updates for '
+                     text='{0} Listing today\'s updates for '
                      .format('\U0001F5C4') +
                           '[{0}](https://github.com/{0}) >>'.format(
                               organization),
@@ -175,7 +175,6 @@ def notification_handler():
         if chat.hour == datetime.utcnow().hour:
             send_today_message(dispatcher.bot, chat.chat_id, chat.username)
 
-
     print("Handler finished. " + get_time())
 
 
@@ -186,7 +185,6 @@ dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('today', today, pass_args=True))
 dispatcher.add_handler(CommandHandler('config', config, pass_args=True))
 dispatcher.add_handler(CommandHandler('org', org, pass_args=True))
-dispatcher.add_handler(CommandHandler('org', org, pass_args=True))
 
 # Start the program
 up.start_polling()
@@ -194,5 +192,7 @@ up.start_polling()
 # Scheduler to handle the notifications every hour
 scheduler = BackgroundScheduler()
 scheduler.add_job(notification_handler, 'cron', hour='*/1')
-#scheduler.add_job(notification_handler, 'cron', minute='*/5')
+# scheduler.add_job(notification_handler, 'cron', minute='*/5')
 scheduler.start()
+
+print("Bot is up and running (probably)")

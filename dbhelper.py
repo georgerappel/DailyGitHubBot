@@ -1,11 +1,13 @@
 import sqlite3
 from ChatConfig import ChatConfig
 
+
 class DBHelper:
     def __init__(self, dbname="todo.sqlite"):
         self.dbname = dbname
-        self.conn = sqlite3.connect(dbname, check_same_thread=False) #TODO CHECK THREAD = TRUE
-        #TODO FIND A BETTER WAY WITH THREAD SAFETY
+        self.conn = sqlite3.connect(dbname, check_same_thread=False)
+        # TODO CHECK THREAD = TRUE
+        # TODO FIND A BETTER WAY WITH THREAD SAFETY
 
     def setup(self):
         stmt = "CREATE TABLE IF NOT EXISTS config (chat_id text PRIMARY KEY, username text, hour INT)"
@@ -57,7 +59,6 @@ class DBHelper:
             chats.append(ChatConfig(row[0], row[1], row[2]))
 
         return chats
-
 
     # def delete_config(self, item_text):
     #     stmt = "DELETE FROM items WHERE description = (?)"
