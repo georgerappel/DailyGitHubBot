@@ -26,13 +26,14 @@ up = Updater(token=config['DEFAULT']['token'])
 dispatcher = up.dispatcher
 
 
-# Home function
+##########################################
+#                                        #
+#           COMMAND HANDLERS             #
+#                                        #
+##########################################
 def start(bot, update):
-    print("Comando start")
-    # Home message
     msg = "Hello, I'm {bot_name}. \n"
-    msg += "To learn how to use the bot and start using the automatic\
-             daily notifications, start by using the /help command. \n"
+    msg += "To learn how to use the bot and start using the automatic daily notifications, check the /help command.\n"
 
     # Send the message
     bot.send_message(chat_id=update.message.chat_id,
@@ -45,7 +46,7 @@ def help(bot, update):
     msg += "daily commit count for your organization. To get started, configure your"
     msg += " organization's username and the time you want to receive the notifications.\n\n"
     msg += "= Configuration =\n"
-    msg += usage_config()
+    msg += config_usage()
     msg += "\n"
     msg += "= Use on demand =\n"
     msg += "/org + organization - List an organization's repositories \n"
@@ -100,7 +101,7 @@ def config(bot, update, args):
             msg += chat_config.to_string()
     elif len(args) < 2 or len(args) > 2:
         msg = "The config command requires 2 parameters.\n"
-        msg += usage_config()
+        msg += config_usage()
     else:
         if args[0] == "time":
             match = re.match("([0-2]{0,1}[0-9])", args[1])
@@ -108,7 +109,7 @@ def config(bot, update, args):
                 hour = int(match.group(0))
                 if hour > 23 or hour < 0:
                     msg = "Invalid hour.\n"
-                    msg += usage_config()
+                    msg += config_usage()
                 else:
                     msg = "Hour saved: " + match.group(0) + " o'clock"
                     msg += "\n" + get_time()
@@ -116,7 +117,7 @@ def config(bot, update, args):
                     msg += "\n" + config.to_string()
             else:
                 msg = "Invalid hour.\n"
-                msg += usage_config()
+                msg += config_usage()
         elif args[0] == "days":
             print("Ok")
             # TODO
@@ -131,8 +132,13 @@ def config(bot, update, args):
     bot.send_message(chat_id=update.message.chat_id, text=msg)
 
 
+##########################################
+#                                        #
+#           HELPER FUNCTIONS             #
+#                                        #
+##########################################
 # Usage guide for the /config command
-def usage_config():
+def config_usage():
     usage = ""
     usage += "Usage:\n"
     usage += "  /config - shows current configuration"
@@ -159,6 +165,7 @@ def error_handler(bot, update, error):
     print(error)
 
 
+# Prepares and sends the message with today's updates for an organization
 def send_today_message(bot, chat_id, organization):
     gh = GitHub()
     bot.send_message(chat_id=chat_id,
@@ -172,14 +179,14 @@ def send_today_message(bot, chat_id, organization):
                      text=gh.get_org_today(organization))
 
 
-def notification_handler():
+def scheduled_handler():
     chats = db.all_configs()
     for chat in chats:
         if chat.valid() and chat.hour == datetime.utcnow().hour:
             send_today_message(dispatcher.bot, chat.chat_id, chat.username)
 
 
-# Add handlers to dispatcher
+# Add command handlers to dispatcher
 dispatcher.add_error_handler(error_handler)
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('help', help))
@@ -187,12 +194,12 @@ dispatcher.add_handler(CommandHandler('today', today, pass_args=True))
 dispatcher.add_handler(CommandHandler('config', config, pass_args=True))
 dispatcher.add_handler(CommandHandler('org', org, pass_args=True))
 
-# Start the program
+# Start the bot
 up.start_polling()
 
 # Scheduler to handle the notifications every hour
 scheduler = BackgroundScheduler()
-scheduler.add_job(notification_handler, 'cron', hour='*/1')
+scheduler.add_job(scheduled_handler, 'cron', hour='*/1')
 # scheduler.add_job(notification_handler, 'cron', minute='*/5')
 scheduler.start()
 

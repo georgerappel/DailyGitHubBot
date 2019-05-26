@@ -3,11 +3,14 @@ from ChatConfig import ChatConfig
 
 
 class DBHelper:
-    def __init__(self, dbname="todo.sqlite"):
+    def __init__(self, dbname="db_bot.sqlite"):
         self.dbname = dbname
         self.conn = sqlite3.connect(dbname, check_same_thread=False)
-        # TODO CHECK THREAD = TRUE
-        # TODO FIND A BETTER WAY WITH THREAD SAFETY
+        # TODO Encontrar melhor solução para banco de dados (postgres local? mysql?). Ler abaixo:
+        # O SQLite parece não ser Thread safe, o que pode causar problemas se dois comandos diferentes forem executados
+        # ao mesmo tempo. A princípio, como cada tupla só é acessada pelo próprio chat, não deve haver inconsistências.
+        # Outro problema é salvar os dados do SQLite, porque em alguns servidores (heroku), ao fazer o redeploy, ele
+        # apaga o arquivo .sqlite e refaz o repositório, causando perda dos dados.
 
     def setup(self):
         stmt = "CREATE TABLE IF NOT EXISTS config (chat_id text PRIMARY KEY, username text, hour INT, days text)"
@@ -38,17 +41,18 @@ class DBHelper:
 
         if row is not None:
             # Chat already on the database
-            row.update(username, hour, days)  # Will update only the fields that are not of NoneType
+            row.update(username, hour, days)  # Will update the fields that are not of NoneType
             stmt = "UPDATE config SET username=?, hour=?, days=? WHERE chat_id=?"
             self.conn.execute(stmt, (row.username, row.hour, row.chat_id, row.days, ))
             self.conn.commit()
             return row
         else:
             # Chat not on the database yet
+            new_chat =  ChatConfig(chat_id, username, hour, days)
             stmt = "INSERT INTO config (chat_id, username, hour, days) VALUES (?, ?, ?, ?)"
-            self.conn.execute(stmt, (chat_id, username, hour, days, ))
+            self.conn.execute(stmt, (new_chat.chat_id, new_chat.username, new_chat.hour, new_chat.days, ))
             self.conn.commit()
-            return ChatConfig(chat_id, username, hour, days)
+            return
 
     def all_configs(self):
         stmt = "SELECT chat_id, username, hour, days FROM config"

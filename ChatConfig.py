@@ -1,7 +1,7 @@
 
 class ChatConfig:
 
-    def __init__(self, chat_id="", username="", hour=0, days=""):
+    def __init__(self, chat_id="", username="", hour=0, days="Weekdays"):
         self.chat_id = str(chat_id)
 
         if username is None:
@@ -15,7 +15,7 @@ class ChatConfig:
             self.hour = hour
 
         if days is None:
-            self.days = "(not set)"
+            self.days = "Weekdays"  # Default to Weekdays
         else:
             self.days = days
 
@@ -33,7 +33,7 @@ class ChatConfig:
         if not self.valid():
             msg += "\nYou must setup every field for the bot to work on this chat.\n\n"
 
-        msg += "Username: @" + self.username
+        msg += "Username: @" + self.username + "\n"
 
         msg += "Notification time: " + self.days + " at " + str(self.hour) + " o'clock."
 
