@@ -111,25 +111,34 @@ def config(bot, update, args):
                     msg = "Invalid hour.\n"
                     msg += config_usage()
                 else:
-                    msg = "Hour saved: " + match.group(0) + " o'clock"
-                    msg += "\n" + get_time()
+                    msg = "Hour saved: " + match.group(0) + " o'clock.\n"
+                    msg += get_time()
                     config = db.set_config(update.message.chat_id, hour=int(match.group(1)))
-                    msg += "\n" + config.to_string()
+                    msg += "\n\n*Current configurations*\n"
+                    msg += config.to_string()
             else:
                 msg = "Invalid hour.\n"
                 msg += config_usage()
         elif args[0] == "days":
-            print("Ok")
-            # TODO
-        elif args[0] == "org":
-            config = db.set_config(update.message.chat_id, username=args[1])
-            msg = "Username saved.\n"
-            msg += config.to_string()
-            # TODO
-        else:
-            msg = "Invalid configuration key.\nTry /help for usage examples.\n"
+            new_days = str(args[1]).lower()
+            if new_days != "weekdays" and new_days != "daily":
+                msg += "Invalid option for notification days. Use weekdays or daily."
+            else:
+                config = db.set_config(update.message.chat_id, days=new_days)
+                msg = "Notification days saved.\n\n*Current configurations*\n"
+                msg += config.to_string()
 
-    bot.send_message(chat_id=update.message.chat_id, text=msg)
+        elif args[0] == "org" or args[0] == "username":
+            new_username = str(args[1])
+            if new_username.startswith("@"):
+                new_username = new_username[1:]
+            config = db.set_config(update.message.chat_id, username=new_username)
+            msg = "Username saved.\n\n*Current configurations*\n"
+            msg += config.to_string()
+        else:
+            msg = "Invalid configuration key.\nUse /help for usage examples.\n"
+
+    bot.send_message(chat_id=update.message.chat_id, text=msg, parse_mode=ParseMode.MARKDOWN)
 
 
 ##########################################
@@ -141,7 +150,7 @@ def config(bot, update, args):
 def config_usage():
     usage = ""
     usage += "Usage:\n"
-    usage += "  /config - shows current configuration"
+    usage += "  /config - shows current configuration\n"
     usage += "  /config org {username} \n"
     usage += "  /config time {0-23}\n"
     usage += "  /config days [weekdays/daily]\n"
@@ -150,7 +159,6 @@ def config_usage():
     usage += "  /config time 9\n"
     usage += "  /config time 17\n"
     usage += "  /config days weekdays\n"
-    usage += "  /config days daily\n"
     usage += "  /config days daily\n"
     usage += get_time() + "\n"
     return usage
@@ -182,7 +190,7 @@ def send_today_message(bot, chat_id, organization):
 def scheduled_handler():
     chats = db.all_configs()
     for chat in chats:
-        if chat.valid() and chat.hour == datetime.utcnow().hour:
+        if chat.valid() and chat.hour == datetime.utcnow().hour:  # TODO Considerar weekdays ou daily.
             send_today_message(dispatcher.bot, chat.chat_id, chat.username)
 
 

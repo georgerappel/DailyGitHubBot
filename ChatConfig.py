@@ -1,7 +1,7 @@
 
 class ChatConfig:
 
-    def __init__(self, chat_id="", username="", hour=0, days="Weekdays"):
+    def __init__(self, chat_id="", username="", hour=0, days="weekdays"):
         self.chat_id = str(chat_id)
 
         if username is None:
@@ -15,7 +15,7 @@ class ChatConfig:
             self.hour = hour
 
         if days is None:
-            self.days = "Weekdays"  # Default to Weekdays
+            self.days = "weekdays"  # Default to Weekdays
         else:
             self.days = days
 
@@ -26,6 +26,7 @@ class ChatConfig:
             self.hour = hour
         if days is not None:
             self.days = days
+        return self
 
     def to_string(self):
         msg = ""

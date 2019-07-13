@@ -37,22 +37,22 @@ class DBHelper:
         row = None
 
         for x in cur:
-            row = ChatConfig(chat_id, x[0], x[1], x[2])
+            row = ChatConfig(chat_id, username=x[0], hour=x[1], days=x[2])
 
         if row is not None:
             # Chat already on the database
-            row.update(username, hour, days)  # Will update the fields that are not of NoneType
+            row = row.update(username, hour, days)  # Will update the fields that are not of NoneType
             stmt = "UPDATE config SET username=?, hour=?, days=? WHERE chat_id=?"
-            self.conn.execute(stmt, (row.username, row.hour, row.chat_id, row.days, ))
+            self.conn.execute(stmt, (row.username, row.hour, row.days, row.chat_id, ))
             self.conn.commit()
-            return row
         else:
             # Chat not on the database yet
-            new_chat =  ChatConfig(chat_id, username, hour, days)
+            row =  ChatConfig(chat_id, username, hour, days)
             stmt = "INSERT INTO config (chat_id, username, hour, days) VALUES (?, ?, ?, ?)"
-            self.conn.execute(stmt, (new_chat.chat_id, new_chat.username, new_chat.hour, new_chat.days, ))
+            self.conn.execute(stmt, (row.chat_id, row.username, row.hour, row.days, ))
             self.conn.commit()
-            return
+
+        return row
 
     def all_configs(self):
         stmt = "SELECT chat_id, username, hour, days FROM config"
