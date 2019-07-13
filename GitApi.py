@@ -38,13 +38,13 @@ class GitHub:
                 req2 = loads(get('https://api.github.com/repos/' + organization + '/' + req[i]['name']
                                  + '/commits?since=' + yesterday).text)
                 if len(req2) > 0:
-                    self.msg += '\n\nName: ' + str(req[i]['name'])
-                    self.msg += '\nTotal Commits: ' + str(len(req2))
+                    print(str(req[i]['name']))
+                    self.msg += '\n' + str(req[i]['name']) + ': ' + str(len(req2)) + ' commits'
                     commit_count += len(req2)
                     repo_count += 1
 
         if commit_count > 0:
-            self.msg = "Repositories updated today: " + str(repo_count) + " with " + str(commit_count) + " commits!" \
+            self.msg = "Repositories updated today: " + str(repo_count) + " with " + str(commit_count) + " commits!\n" \
                        + self.msg
         else:
             self.msg = "No repositories were updated today."
