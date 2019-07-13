@@ -202,8 +202,8 @@ dispatcher.add_handler(CommandHandler('today', today, pass_args=True))
 dispatcher.add_handler(CommandHandler('config', config, pass_args=True))
 dispatcher.add_handler(CommandHandler('org', org, pass_args=True))
 
-# Start the bot
-up.start_polling()
+# Start the bot with clean flag to ignore commands while it was offline
+up.start_polling(clean=True)
 
 # Scheduler to handle the notifications every hour
 scheduler = BackgroundScheduler()
