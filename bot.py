@@ -49,8 +49,8 @@ def help(bot, update):
     msg += config_usage()
     msg += "\n"
     msg += "= Use on demand =\n"
-    msg += "/org + organization - List an organization's repositories \n"
-    msg += "/today + organization - List today's commits for an organization\n"
+    msg += "/org + organization - List repositories for an organization (up to 30 most recently updated)\n"
+    msg += "/today + organization - Count commits pushed today for an organization (up to 30 repositories)\n"
     msg += "Ex: /org devmobufrj | /today devmobufrj\n"
     msg += "\nThis bot is OpenSource and contributions are welcome at "
     msg += "https://github.com/georgerappel/DailyGitHubBot\n"
