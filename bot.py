@@ -72,7 +72,8 @@ def org(bot, update, args):
                          parse_mode=ParseMode.MARKDOWN)
 
         bot.send_message(chat_id=update.message.chat_id,
-                         text=gh.get_org_repos(organization))
+                         text=gh.get_org_repos(organization),
+                         parse_mode=ParseMode.MARKDOWN)
 
 
 # List commits made today by an organization
@@ -184,7 +185,8 @@ def send_today_message(bot, chat_id, organization):
                      parse_mode=ParseMode.MARKDOWN)
 
     bot.send_message(chat_id=chat_id,
-                     text=gh.get_org_today(organization))
+                     text=gh.get_org_today(organization),
+                     parse_mode=ParseMode.MARKDOWN)
 
 
 def scheduled_handler():
