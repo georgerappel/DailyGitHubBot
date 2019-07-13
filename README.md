@@ -1,6 +1,6 @@
 ## Daily GitHub Bot
 for Telegram.
 
-- On the file config.ini, replace `%(BOT_API_KEY)s` with the bot key or set the environment variable on your system.
-- `pip3 install -r requirements.txt`
-- `python3 bot.py`
+- Copy the file `config.inc.example` to `config.ini` and replace the bot token with your token.
+- Install the requirements: `pip3 install -r requirements.txt`
+- Run the bot: `python3 bot.py`
