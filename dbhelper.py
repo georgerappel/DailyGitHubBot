@@ -3,9 +3,9 @@ from ChatConfig import ChatConfig
 
 
 class DBHelper:
-    def __init__(self, dbname="db_bot.sqlite"):
-        self.dbname = dbname
-        self.conn = sqlite3.connect(dbname, check_same_thread=False)
+    def __init__(self, dbpath="db_bot.sqlite"):
+        self.dbname = dbpath
+        self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
         # TODO Encontrar melhor solução para banco de dados (postgres local? mysql?). Ler abaixo:
         # O SQLite parece não ser Thread safe, o que pode causar problemas se dois comandos diferentes forem executados
         # ao mesmo tempo. A princípio, como cada tupla só é acessada pelo próprio chat, não deve haver inconsistências.
