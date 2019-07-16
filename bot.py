@@ -35,8 +35,8 @@ dispatcher = up.dispatcher
 #                                        #
 ##########################################
 def start(bot, update):
-    msg = "Hello, I'm {bot_name}. \n"
-    msg += "To learn how to use the bot and start using the automatic daily notifications, check the /help command.\n"
+    msg = "Hello, I'm {bot_name}. I can notify you of today's commits for any organization.\n"
+    msg += "To learn how to use and setup automatic daily notifications, use /help.\n"
 
     # Send the message
     bot.send_message(chat_id=update.message.chat_id,
@@ -45,48 +45,58 @@ def start(bot, update):
 
 def usage_help(bot, update):
     msg = ""
-    msg += "This bot will message the current chat everyday or on weekdays with the "
-    msg += "daily commit count for your organization. To get started, configure your"
-    msg += " organization's username and the time you want to receive the notifications.\n\n"
-    msg += "= Configuration =\n"
+    msg += "This bot daily messages the commit count for your organization. You can also use "
+    msg += "the /today <organization> when necessary.\n"
+    msg += "To get started, setup your organization's username and the time for the notifications."
+    msg += "\n\n"
+    msg += "*Configuration*\n"
     msg += config_usage()
     msg += "\n"
-    msg += "= Use on demand =\n"
-    msg += "/org + organization - List repositories for an organization (up to 30 most recently updated)\n"
-    msg += "/today + organization - Count commits pushed today for an organization (up to 30 repositories)\n"
-    msg += "Ex: /org devmobufrj | /today devmobufrj\n"
-    msg += "\nThis bot is OpenSource and contributions are welcome at "
-    msg += "https://github.com/georgerappel/DailyGitHubBot\n"
+    msg += "*On Demand*\n"
+    msg += "/repos _organization_ - List repos for an organization (up to 30 most recent)\n"
+    msg += "/today _organization_ - Count commits pushed today for an organization (up to 20 most recent)\n"
+    msg += "\nThis bot is OpenSource and contributions are welcome [on GitHub]("
+    msg += "https://github.com/georgerappel/DailyGitHubBot)."
 
     # Send the message
     bot.send_message(chat_id=update.message.chat_id,
                      text=msg,
-                     disable_web_page_preview=True)
+                     disable_web_page_preview=True,
+                     parse_mode=ParseMode.MARKDOWN)
 
 
 # List the repositories of an Organization
-def org(bot, update, args):
-    gh = GitHub(config_file)
-    for organization in args:
+def repos(bot, update, args):
+    if len(args) < 1:
         bot.send_message(chat_id=update.message.chat_id,
-                         text='{0} Listing the Organization\'s repositories '
-                         .format('\U0001F5C4') +
-                         '[{0}](https://github.com/{0}) >>'.format(
-                             organization),
-                         parse_mode=ParseMode.MARKDOWN,
-                         disable_web_page_preview=True)
+                         text='Please provide an organization username')
+        return
+    elif len(args) > 1:
+        bot.send_message(chat_id=update.message.chat_id,
+                         text='Please provide only one valid username for the organization')
+        return
 
-        bot.send_message(chat_id=update.message.chat_id,
-                         text=gh.get_org_repos(organization),
-                         parse_mode=ParseMode.MARKDOWN,
-                         disable_web_page_preview=True)
+    organization = args[0]
+    gh = GitHub(config_file)
+    bot.send_message(chat_id=update.message.chat_id,
+                     text='{0} Listing the Organization\'s repositories '
+                     .format('\U0001F5C4') +
+                     '[{0}](https://github.com/{0}) >>'.format(
+                         organization),
+                     parse_mode=ParseMode.MARKDOWN,
+                     disable_web_page_preview=True)
+
+    bot.send_message(chat_id=update.message.chat_id,
+                     text=gh.get_org_repos(organization),
+                     parse_mode=ParseMode.MARKDOWN,
+                     disable_web_page_preview=True)
 
 
 # List commits made today by an organization
 def today(bot, update, args):
     if len(args) < 1:
         bot.send_message(chat_id=update.message.chat_id,
-                         text='Please provide an organization name')
+                         text='Please provide an organization username')
         return
     elif len(args) > 1:
         bot.send_message(chat_id=update.message.chat_id,
@@ -179,6 +189,7 @@ def get_time():
 def error_handler(bot, update, error):
     print("Error handled: ")
     print(error)
+    print(update.message)
 
 
 # Prepares and sends the message with today's updates for an organization
@@ -187,7 +198,7 @@ def send_today_message(bot, chat_id, organization):
     bot.send_message(chat_id=chat_id,
                      text='{0} Listing today\'s updates for '
                      .format('\U0001F5C4') +
-                          '[{0}](https://github.com/{0}) >>'.format(
+                          '[{0}](https://github.com/{0})'.format(
                               organization),
                      parse_mode=ParseMode.MARKDOWN,
                      disable_web_page_preview=True)
@@ -211,7 +222,7 @@ dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('help', usage_help))
 dispatcher.add_handler(CommandHandler('today', today, pass_args=True))
 dispatcher.add_handler(CommandHandler('config', update_config, pass_args=True))
-dispatcher.add_handler(CommandHandler('org', org, pass_args=True))
+dispatcher.add_handler(CommandHandler('repos', repos, pass_args=True))
 
 # Start the bot with clean flag to ignore commands while it was offline
 up.start_polling(clean=True)
