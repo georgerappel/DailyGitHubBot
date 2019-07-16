@@ -30,10 +30,12 @@ class GitHub:
     def get_org_repos(self, organization):
         self.msg = ""
         req = loads(get('https://api.github.com/orgs/' + organization + '/repos' + self.url_parameters()).text)
-        self.msg += '\nRepositories.'
+        self.msg += '\nRepositories:'
         for i in range(len(req)):
-            self.msg += '\n\n[' + str(req[i]['name']) + '](' + str(req[i]['html_url']) + ')'  # Name with URL
-            self.msg += '\n\U0001F4C4 ' + str(req[i]['description'])
+            # Name with URL
+            self.msg += '\n\n[' + escape_to_markdown(str(req[i]['name'])) + '](' + str(req[i]['html_url']) + ')'
+            # Description on the second line
+            self.msg += '\n\U0001F4C4 ' + escape_to_markdown(str(req[i]['description']))
 
         return self.msg
 
@@ -46,14 +48,15 @@ class GitHub:
         yesterday = (today - timedelta(1)).strftime("%Y-%m-%dT%H:%M:%SZ")
         url = 'https://api.github.com/orgs/' + organization + '/repos' + self.url_parameters()
         req = loads(get(url).text)
-        for i in range(len(req)):
+        repo_range = len(req) if len(req) <= 20 else 20  # Limita a 20 repositórios
+        for i in range(repo_range):
             pushed_at = datetime.strptime(req[i]['pushed_at'], "%Y-%m-%dT%H:%M:%SZ")
             diff = datetime.now() - pushed_at
             if diff.days < 1:
                 req2 = loads(get('https://api.github.com/repos/' + organization + '/' + req[i]['name']
                                  + '/commits?since=' + yesterday).text)
                 if len(req2) > 0:
-                    self.msg += '\n' + str(req[i]['name']) + ': ' + str(len(req2)) + ' commits'
+                    self.msg += '\n' + escape_to_markdown(str(req[i]['name'])) + ': ' + str(len(req2)) + ' commits'
                     commit_count += len(req2)
                     repo_count += 1
 
@@ -66,5 +69,11 @@ class GitHub:
         return self.msg
 
 
-if __name__ == "__main__":
-    arg = GitHub()
+# Used to escape special characters in usernames or texts that break the markdown support of Telegram
+def escape_to_markdown(text):
+    new_text: str = text
+    new_text = new_text.replace("_", "\\_")
+    new_text = new_text.replace("*", "\\*")
+    new_text = new_text.replace("[", "")
+    new_text = new_text.replace("<<", "")
+    return new_text
