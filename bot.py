@@ -60,7 +60,8 @@ def usage_help(bot, update):
 
     # Send the message
     bot.send_message(chat_id=update.message.chat_id,
-                     text=msg)
+                     text=msg,
+                     disable_web_page_preview=True)
 
 
 # List the repositories of an Organization
@@ -72,11 +73,13 @@ def org(bot, update, args):
                          .format('\U0001F5C4') +
                          '[{0}](https://github.com/{0}) >>'.format(
                              organization),
-                         parse_mode=ParseMode.MARKDOWN)
+                         parse_mode=ParseMode.MARKDOWN,
+                         disable_web_page_preview=True)
 
         bot.send_message(chat_id=update.message.chat_id,
                          text=gh.get_org_repos(organization),
-                         parse_mode=ParseMode.MARKDOWN)
+                         parse_mode=ParseMode.MARKDOWN,
+                         disable_web_page_preview=True)
 
 
 # List commits made today by an organization
@@ -186,11 +189,13 @@ def send_today_message(bot, chat_id, organization):
                      .format('\U0001F5C4') +
                           '[{0}](https://github.com/{0}) >>'.format(
                               organization),
-                     parse_mode=ParseMode.MARKDOWN)
+                     parse_mode=ParseMode.MARKDOWN,
+                     disable_web_page_preview=True)
 
     bot.send_message(chat_id=chat_id,
                      text=gh.get_org_today(organization),
-                     parse_mode=ParseMode.MARKDOWN)
+                     parse_mode=ParseMode.MARKDOWN,
+                     disable_web_page_preview=True)
 
 
 def scheduled_handler():
