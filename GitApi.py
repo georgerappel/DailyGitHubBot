@@ -86,7 +86,7 @@ class GitHub:
 
 # Used to escape special characters in usernames or texts that break the markdown support of Telegram
 def escape_to_markdown(text):
-    new_text: str = text
+    new_text = text
     new_text = new_text.replace("_", "\\_")
     new_text = new_text.replace("*", "\\*")
     new_text = new_text.replace("[", "")
