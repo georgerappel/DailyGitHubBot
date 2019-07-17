@@ -112,7 +112,6 @@ def today(bot, update, args):
                          text='Please provide only one valid username for the organization')
         return
 
-    logging.info("/today org:" + str(args[0]))
     send_today_message(bot, update.message.chat_id, args[0])
 
 
@@ -216,6 +215,7 @@ def scheduled_handler():
     chats = db.all_configs()
     for chat in chats:
         if chat.valid() and chat.hour == datetime.utcnow().hour:  # TODO Consider weekdays ou daily.
+            logging.info("Command /today scheduled org:" + str(chat.username))
             send_today_message(dispatcher.bot, chat.chat_id, chat.username)
 
 
