@@ -7,12 +7,24 @@ from telegram.ext import Updater, CommandHandler
 from datetime import datetime
 import re
 import os
+import logging
+import logging.handlers
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from GitApi import GitHub
 from dbhelper import DBHelper
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Log Handler
+log = logging.getLogger(__name__)
+handler = logging.handlers.WatchedFileHandler(
+    os.environ.get("LOGFILE", PROJECT_DIR + "/log/" + datetime.now().isoformat() + ".log"))
+formatter = logging.Formatter(logging.BASIC_FORMAT)
+handler.setFormatter(formatter)
+root = logging.getLogger()
+root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+root.addHandler(handler)
 
 # Connect and Setup the database
 db = DBHelper(dbpath=PROJECT_DIR + '/db_bot.sqlite')
@@ -35,6 +47,7 @@ dispatcher = up.dispatcher
 #                                        #
 ##########################################
 def start(bot, update):
+    logging.info("Command /start for chat_id:" + str(update.message.chat_id))
     msg = "Hello, I'm {bot_name}. I can notify you of today's commits for any organization.\n"
     msg += "To learn how to use and setup automatic daily notifications, use /help.\n"
 
@@ -44,6 +57,7 @@ def start(bot, update):
 
 
 def usage_help(bot, update):
+    logging.info("Command /help for chat_id:" + str(update.message.chat_id))
     msg = ""
     msg += "This bot daily messages the commit count for your organization. You can also use "
     msg += "the /today <organization> when necessary.\n"
@@ -67,6 +81,7 @@ def usage_help(bot, update):
 
 # List the repositories of an Organization
 def repos(bot, update, args):
+    logging.info("Command /repos for chat_id:" + str(update.message.chat_id))
     if len(args) < 1:
         bot.send_message(chat_id=update.message.chat_id,
                          text='Please provide an organization username')
@@ -78,13 +93,6 @@ def repos(bot, update, args):
 
     organization = args[0]
     gh = GitHub(config_file)
-    bot.send_message(chat_id=update.message.chat_id,
-                     text='{0} Listing the Organization\'s repositories '
-                     .format('\U0001F5C4') +
-                     '[{0}](https://github.com/{0}) >>'.format(
-                         organization),
-                     parse_mode=ParseMode.MARKDOWN,
-                     disable_web_page_preview=True)
 
     bot.send_message(chat_id=update.message.chat_id,
                      text=gh.get_org_repos(organization),
@@ -94,6 +102,7 @@ def repos(bot, update, args):
 
 # List commits made today by an organization
 def today(bot, update, args):
+    logging.info("Command /today for chat_id:" + str(update.message.chat_id))
     if len(args) < 1:
         bot.send_message(chat_id=update.message.chat_id,
                          text='Please provide an organization username')
@@ -103,11 +112,23 @@ def today(bot, update, args):
                          text='Please provide only one valid username for the organization')
         return
 
+    logging.info("/today org:" + str(args[0]))
     send_today_message(bot, update.message.chat_id, args[0])
+
+
+# Prepares and sends the message with today's updates for an organization
+def send_today_message(bot, chat_id, organization):
+    gh = GitHub(config_file)
+
+    bot.send_message(chat_id=chat_id,
+                     text=gh.get_org_today(organization),
+                     parse_mode=ParseMode.MARKDOWN,
+                     disable_web_page_preview=True)
 
 
 # Set or Read chat configurations
 def update_config(bot, update, args):
+    logging.info("Command /config for chat_id:" + str(update.message.chat_id))
     msg = ""
     if len(args) == 0:
         chat_config = db.get_config(update.message.chat_id)
@@ -187,26 +208,8 @@ def get_time():
 
 # noinspection PyUnusedLocal
 def error_handler(bot, update, error):
-    print("Error handled: ")
-    print(error)
-    print(update.message)
-
-
-# Prepares and sends the message with today's updates for an organization
-def send_today_message(bot, chat_id, organization):
-    gh = GitHub(config_file)
-    bot.send_message(chat_id=chat_id,
-                     text='{0} Listing today\'s updates for '
-                     .format('\U0001F5C4') +
-                          '[{0}](https://github.com/{0})'.format(
-                              organization),
-                     parse_mode=ParseMode.MARKDOWN,
-                     disable_web_page_preview=True)
-
-    bot.send_message(chat_id=chat_id,
-                     text=gh.get_org_today(organization),
-                     parse_mode=ParseMode.MARKDOWN,
-                     disable_web_page_preview=True)
+    logging.error("Bot error handler.")
+    logging.error(error)
 
 
 def scheduled_handler():
@@ -232,5 +235,5 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(scheduled_handler, 'cron', hour='*/1')
 # scheduler.add_job(notification_handler, 'cron', minute='*/5')
 scheduler.start()
-
-print("Bot is up and running (probably)")
+logging.info("Bot is running!")
+print("Bot is up and running")

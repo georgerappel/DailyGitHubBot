@@ -4,6 +4,7 @@
 from datetime import datetime, timedelta
 from json import loads
 from requests import get
+import logging
 
 
 class GitHub:
@@ -29,25 +30,40 @@ class GitHub:
     # List repositories for an Organzation (up to 30)
     def get_org_repos(self, organization):
         self.msg = ""
+        self.msg += '{0} Repositories for '.format('\U0001F5C4') \
+                    + '[{0}](https://github.com/{0}):\n\n'.format(organization)
         req = loads(get('https://api.github.com/orgs/' + organization + '/repos' + self.url_parameters()).text)
-        self.msg += '\nRepositories:'
         for i in range(len(req)):
             # Name with URL
             self.msg += '\n\n[' + escape_to_markdown(str(req[i]['name'])) + '](' + str(req[i]['html_url']) + ')'
             # Description on the second line
             self.msg += '\n\U0001F4C4 ' + escape_to_markdown(str(req[i]['description']))
 
+        if len(req) == 0:
+            self.msg += "No repositories found."
+
         return self.msg
 
     # Count commits today for an organization
     def get_org_today(self, organization):
         self.msg = ""
+        self.msg += '{0} Today\'s updates for '.format('\U0001F5C4') \
+                    + '[{0}](https://github.com/{0}):\n\n'.format(organization)
         commit_count = 0
         repo_count = 0
         today = datetime.now()
         yesterday = (today - timedelta(1)).strftime("%Y-%m-%dT%H:%M:%SZ")
         url = 'https://api.github.com/orgs/' + organization + '/repos' + self.url_parameters()
         req = loads(get(url).text)
+
+        # Handles case where there's an API error
+        try:
+            if req['message'] is not None:
+                logging.getLogger(__name__).error("API ERROR /today: " + req['message'])
+                return "Unable to get updates for this organization at this time."
+        except:
+            pass
+
         repo_range = len(req) if len(req) <= 20 else 20  # Limita a 20 repositórios
         for i in range(repo_range):
             pushed_at = datetime.strptime(req[i]['pushed_at'], "%Y-%m-%dT%H:%M:%SZ")
@@ -61,10 +77,9 @@ class GitHub:
                     repo_count += 1
 
         if commit_count > 0:
-            self.msg = "Repositories updated today: " + str(repo_count) + " with " + str(commit_count) + " commits!\n" \
-                       + self.msg
+            self.msg = "*" + str(repo_count) + " repos updated with " + str(commit_count) + " commits!*\n" + self.msg
         else:
-            self.msg = "No repositories were updated today."
+            self.msg = self.msg + "No repositories were updated today."
 
         return self.msg
 
