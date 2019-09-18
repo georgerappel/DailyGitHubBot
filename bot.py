@@ -214,12 +214,12 @@ def error_handler(bot, update, error):
 def scheduled_handler():
     chats = db.all_configs()
     for chat in chats:
-        if chat.valid() and chat.hour == datetime.utcnow().hour:  # TODO Consider weekdays ou daily.
+        if chat.should_send_message():
             logging.info("Command /today scheduled org:" + str(chat.username))
             send_today_message(dispatcher.bot, chat.chat_id, chat.username)
 
 
-# Add command handlers to dispatcher
+# Add command handlers to dispatcher, those are functions to handle each command received from an user
 dispatcher.add_error_handler(error_handler)
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('help', usage_help))
