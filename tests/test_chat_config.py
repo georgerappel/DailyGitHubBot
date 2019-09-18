@@ -13,8 +13,8 @@ class TestChatConfig(unittest.TestCase):
 
     def test_update_username(self):
         chat = ChatConfig()
-        chat.update(username="devmobufrj")
-        self.assertEqual(chat.username, "devmobufrj")
+        chat.update(username="devmob")
+        self.assertEqual(chat.username, "devmob")
 
     def test_update_hour(self):
         chat = ChatConfig()

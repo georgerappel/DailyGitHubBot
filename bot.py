@@ -192,7 +192,7 @@ def config_usage():
     usage += "  /config time {0-23}\n"
     usage += "  /config days [weekdays/daily]\n"
     usage += "Examples:\n"
-    usage += "  /config org DevMobUFRJ\n"
+    usage += "  /config org myorg\n"
     usage += "  /config time 9\n"
     usage += "  /config time 17\n"
     usage += "  /config days weekdays\n"
