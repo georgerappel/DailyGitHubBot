@@ -219,6 +219,11 @@ def scheduled_handler():
             send_today_message(dispatcher.bot, chat.chat_id, chat.username)
 
 
+##########################################
+#                                        #
+#             BOT HANDLERS               #
+#                                        #
+##########################################
 # Add command handlers to dispatcher, those are functions to handle each command received from an user
 dispatcher.add_error_handler(error_handler)
 dispatcher.add_handler(CommandHandler('start', start))

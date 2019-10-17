@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from json import loads
 from requests import get
 import logging
+import utils
 
 
 class GitHub:
@@ -29,6 +30,9 @@ class GitHub:
 
     # List repositories for an Organzation (up to 30)
     def get_org_repos(self, organization):
+        if not utils.is_username_valid(organization):
+            return "Invalid username"
+
         self.msg = ""
         self.msg += '{0} Repositories for '.format('\U0001F5C4') \
                     + '[{0}](https://github.com/{0}):\n\n'.format(organization)
@@ -46,6 +50,9 @@ class GitHub:
 
     # Count commits today for an organization
     def get_org_today(self, organization):
+        if not utils.is_username_valid(organization):
+            return "Invalid username"
+
         self.msg = ""
         self.msg += '{0} Today\'s updates for '.format('\U0001F5C4') \
                     + '[{0}](https://github.com/{0}):\n\n'.format(organization)
