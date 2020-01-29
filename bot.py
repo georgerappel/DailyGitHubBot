@@ -1,38 +1,28 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-
 from configparser import ConfigParser
 from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler
 from datetime import datetime
 import re
 import os
-import logging
-import logging.handlers
 from apscheduler.schedulers.background import BackgroundScheduler
-
 from GitApi import GitHub
-from dbhelper import DBHelper
+from db_helper import DBHelper
+
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Log Handler
-log = logging.getLogger(__name__)
-handler = logging.handlers.WatchedFileHandler(
-    os.environ.get("LOGFILE", PROJECT_DIR + "/log/" + datetime.now().isoformat() + ".log"))
-formatter = logging.Formatter(logging.BASIC_FORMAT)
-handler.setFormatter(formatter)
-root = logging.getLogger()
-root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
-root.addHandler(handler)
 
 # Connect and Setup the database
 db = DBHelper(dbpath=PROJECT_DIR + '/db_bot.sqlite')
 db.setup()
 
+
 # Bot Configuration
 config_file = ConfigParser()
 config_file.read_file(open(PROJECT_DIR + '/config.ini'))
+
 
 # Connecting the telegram API
 # Updater will take the information and dispatcher connect the message to
@@ -47,7 +37,6 @@ dispatcher = up.dispatcher
 #                                        #
 ##########################################
 def start(bot, update):
-    logging.info("Command /start for chat_id:" + str(update.message.chat_id))
     msg = "Hello, I'm {bot_name}. I can notify you of today's commits for any organization.\n"
     msg += "To learn how to use and setup automatic daily notifications, use /help.\n"
 
@@ -57,7 +46,6 @@ def start(bot, update):
 
 
 def usage_help(bot, update):
-    logging.info("Command /help for chat_id:" + str(update.message.chat_id))
     msg = ""
     msg += "This bot daily messages the commit count for your organization. You can also use "
     msg += "the /today <organization> when necessary.\n"
@@ -81,7 +69,6 @@ def usage_help(bot, update):
 
 # List the repositories of an Organization
 def repos(bot, update, args):
-    logging.info("Command /repos for chat_id:" + str(update.message.chat_id))
     if len(args) < 1:
         bot.send_message(chat_id=update.message.chat_id,
                          text='Please provide an organization username')
@@ -102,7 +89,6 @@ def repos(bot, update, args):
 
 # List commits made today by an organization
 def today(bot, update, args):
-    logging.info("Command /today for chat_id:" + str(update.message.chat_id))
     if len(args) < 1:
         bot.send_message(chat_id=update.message.chat_id,
                          text='Please provide an organization username')
@@ -127,7 +113,6 @@ def send_today_message(bot, chat_id, organization):
 
 # Set or Read chat configurations
 def update_config(bot, update, args):
-    logging.info("Command /config for chat_id:" + str(update.message.chat_id))
     msg = ""
     if len(args) == 0:
         chat_config = db.get_config(update.message.chat_id)
@@ -207,15 +192,13 @@ def get_time():
 
 # noinspection PyUnusedLocal
 def error_handler(bot, update, error):
-    logging.error("Bot error handler.")
-    logging.error(error)
+    print("Error")
 
 
 def scheduled_handler():
     chats = db.all_configs()
     for chat in chats:
         if chat.should_send_message():
-            logging.info("Command /today scheduled org:" + str(chat.username))
             send_today_message(dispatcher.bot, chat.chat_id, chat.username)
 
 
@@ -240,5 +223,5 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(scheduled_handler, 'cron', hour='*/1')
 # scheduler.add_job(notification_handler, 'cron', minute='*/5')
 scheduler.start()
-logging.info("Bot is running!")
+
 print("Bot is up and running")
