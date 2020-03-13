@@ -13,3 +13,4 @@ for Telegram.
 Currently, it's default to do nothing, but it would be good to give the users an option;
 - [ ] Remove chat from the database if there's no activity for the past two weeks or so;
 - [ ] Count commits on branches other than the Master branch;
+- [ ] Try to get data from a user, instead of from an organization, if the username passed doesn't work for an org;
