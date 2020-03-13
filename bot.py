@@ -56,8 +56,9 @@ def usage_help(bot, update):
     msg += "\n"
     msg += "*On Demand*\n"
     msg += "/repos _organization_ - List repos for an organization (up to 30 most recent)\n"
-    msg += "/today _organization_ - Count commits pushed today for an organization (up to 20 most recent)\n"
-    msg += "\nThis bot is OpenSource and contributions are welcome [on GitHub]("
+    msg += "/today _organization_ - Count commits pushed today for an organization (up to 20 most recent)\n\n"
+    msg += "No other messages or information from this chat are stored or used in any way.\n"
+    msg += "This bot is OpenSource and contributions are welcome [on GitHub]("
     msg += "https://github.com/georgerappel/DailyGitHubBot)."
 
     # Send the message
