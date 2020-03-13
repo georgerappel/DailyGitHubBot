@@ -1,5 +1,5 @@
 import sqlite3
-from ChatConfig import ChatConfig
+from chat_config import ChatConfig
 
 
 class DBHelper:

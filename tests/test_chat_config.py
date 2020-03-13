@@ -1,7 +1,7 @@
 from datetime import datetime
 import unittest
 
-from ChatConfig import ChatConfig
+from chat_config import ChatConfig
 
 
 class TestChatConfig(unittest.TestCase):

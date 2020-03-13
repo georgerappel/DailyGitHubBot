@@ -7,7 +7,7 @@ from datetime import datetime
 import re
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
-from GitApi import GitHub
+from git_api import GitHub
 from db_helper import DBHelper
 
 
