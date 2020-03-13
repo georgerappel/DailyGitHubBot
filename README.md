@@ -9,5 +9,6 @@ for Telegram.
 
 ### Todo
 
-- [ ] Config to disable notifications if there are no commits that day, instead of sending "No commits today"
-- [ ] Remove chat from the database if there's no activity for the past two weeks or so
+- [ ] Config to enable the notification if there are no commits that day, instead of sending "No commits today".
+Currently, it's default to do nothing, but it would be good to give the users an option;
+- [ ] Remove chat from the database if there's no activity for the past two weeks or so;
