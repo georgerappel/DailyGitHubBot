@@ -1,6 +1,8 @@
 ## Daily GitHub Bot
 for Telegram.
 
+@DailyGithubBot - https://t.me/dailygithubbot
+
 - Copy the file `config.inc.example` to `config.ini` and replace the bot token with your token.
 - Install the requirements: `pip3 install -r requirements.txt`
   - If you get an error for the telegram package, try running the command above with sudo.
