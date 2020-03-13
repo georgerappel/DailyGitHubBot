@@ -98,15 +98,20 @@ def today(bot, update, args):
                          text='Please provide only one valid username for the organization')
         return
 
-    send_today_message(bot, update.message.chat_id, args[0])
+    send_today_message(bot, update.message.chat_id, args[0], False)
 
 
 # Prepares and sends the message with today's updates for an organization
-def send_today_message(bot, chat_id, organization):
+def send_today_message(bot, chat_id, organization, send_only_if_there_are_commits=False):
     gh = GitHub(config_file)
 
+    message, commit_count = gh.get_org_today(organization)
+
+    if send_only_if_there_are_commits and commit_count <= 0:
+        return
+
     bot.send_message(chat_id=chat_id,
-                     text=gh.get_org_today(organization),
+                     text=message,
                      parse_mode=ParseMode.MARKDOWN,
                      disable_web_page_preview=True)
 
@@ -199,7 +204,8 @@ def scheduled_handler():
     chats = db.all_configs()
     for chat in chats:
         if chat.should_send_message():
-            send_today_message(dispatcher.bot, chat.chat_id, chat.username)
+            # TODO The parameter send_only_if_there_are_commits should be changed to the chat configuration
+            send_today_message(dispatcher.bot, chat.chat_id, chat.username, True)
 
 
 ##########################################

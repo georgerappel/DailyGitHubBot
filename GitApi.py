@@ -88,7 +88,7 @@ class GitHub:
         else:
             self.msg = self.msg + "No repositories were updated today."
 
-        return self.msg
+        return self.msg, commit_count
 
 
 # Used to escape special characters in usernames or texts that break the markdown support of Telegram
