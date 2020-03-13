@@ -14,3 +14,6 @@ class TestUtils(unittest.TestCase):
 
     def test_username_invalid_underscore(self):
         self.assertFalse(utils.is_username_valid("MeuNome_Julia99"))
+
+    def test_username_invalid_space(self):
+        self.assertFalse(utils.is_username_valid("Issodai Talkey"))
